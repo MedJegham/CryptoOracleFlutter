@@ -1,5 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:crypto_oracle/core/errors/app_exception.dart';
 import 'package:crypto_oracle/core/storage/secure_storage_service.dart';
 import 'package:crypto_oracle/models/auth/auth_request_model.dart';
@@ -7,38 +5,34 @@ import 'package:crypto_oracle/models/common/user_model.dart';
 
 class AuthRepository {
   final SecureStorageService _secureStorage;
-  final FirebaseAuth _firebaseAuth;
 
-  AuthRepository(this._secureStorage, {FirebaseAuth? firebaseAuth})
-      : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+  AuthRepository(this._secureStorage);
 
+  // Simulated authentication - replace with real API calls
   Future<AuthResponse> login(LoginRequest request) async {
-    if (request.email.isEmpty || request.password.isEmpty) {
-      throw ValidationException(message: 'Email and password are required');
-    }
     try {
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: request.email.trim(),
-        password: request.password,
-      );
-      final user = credential.user;
-      if (user == null) {
-        throw AuthException(message: 'Login failed: no user returned');
+      // Simulate API delay
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Simulate validation
+      if (request.email.isEmpty || request.password.isEmpty) {
+        throw ValidationException(message: 'Email and password are required');
       }
 
-      final token = await user.getIdToken() ?? '';
-      await _secureStorage.saveAuthToken(token);
-      await _secureStorage.saveUserId(user.uid);
-
-      return AuthResponse(
-        token: token,
-        userId: user.uid,
-        email: user.email ?? request.email,
-        name: user.displayName ?? user.email?.split('@').first ?? 'User',
+      // Simulate successful login
+      final response = AuthResponse(
+        token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
+        userId: 'user_123',
+        email: request.email,
+        name: 'Demo User',
         message: 'Login successful',
       );
-    } on FirebaseAuthException catch (e) {
-      throw _mapFirebaseAuthException(e, defaultMessage: 'Login failed');
+
+      // Save token
+      await _secureStorage.saveAuthToken(response.token);
+      await _secureStorage.saveUserId(response.userId);
+
+      return response;
     } catch (e) {
       if (e is AppException) rethrow;
       throw AuthException(message: 'Login failed: ${e.toString()}');
@@ -46,38 +40,31 @@ class AuthRepository {
   }
 
   Future<AuthResponse> register(RegisterRequest request) async {
-    if (request.email.isEmpty ||
-        request.password.isEmpty ||
-        request.name.isEmpty) {
-      throw ValidationException(message: 'All fields are required');
-    }
     try {
-      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-        email: request.email.trim(),
-        password: request.password,
-      );
-      final user = credential.user;
-      if (user == null) {
-        throw AuthException(message: 'Registration failed: no user returned');
+      // Simulate API delay
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Simulate validation
+      if (request.email.isEmpty ||
+          request.password.isEmpty ||
+          request.name.isEmpty) {
+        throw ValidationException(message: 'All fields are required');
       }
 
-      await user.updateDisplayName(request.name);
-      await user.reload();
-      final refreshed = _firebaseAuth.currentUser ?? user;
-
-      final token = await refreshed.getIdToken() ?? '';
-      await _secureStorage.saveAuthToken(token);
-      await _secureStorage.saveUserId(refreshed.uid);
-
-      return AuthResponse(
-        token: token,
-        userId: refreshed.uid,
-        email: refreshed.email ?? request.email,
-        name: refreshed.displayName ?? request.name,
+      // Simulate successful registration
+      final response = AuthResponse(
+        token: 'mock_token_${DateTime.now().millisecondsSinceEpoch}',
+        userId: 'user_${DateTime.now().millisecondsSinceEpoch}',
+        email: request.email,
+        name: request.name,
         message: 'Registration successful',
       );
-    } on FirebaseAuthException catch (e) {
-      throw _mapFirebaseAuthException(e, defaultMessage: 'Registration failed');
+
+      // Save token
+      await _secureStorage.saveAuthToken(response.token);
+      await _secureStorage.saveUserId(response.userId);
+
+      return response;
     } catch (e) {
       if (e is AppException) rethrow;
       throw AuthException(message: 'Registration failed: ${e.toString()}');
@@ -85,65 +72,32 @@ class AuthRepository {
   }
 
   Future<UserModel?> getCurrentUser() async {
-    final user = _firebaseAuth.currentUser;
-    if (user == null) return null;
-
     try {
-      final token = await user.getIdToken();
-      if (token != null) {
-        await _secureStorage.saveAuthToken(token);
-        await _secureStorage.saveUserId(user.uid);
-      }
-    } catch (_) {
-    }
+      final token = await _secureStorage.getAuthToken();
+      final userId = await _secureStorage.getUserId();
 
-    return UserModel(
-      id: user.uid,
-      email: user.email ?? '',
-      name: user.displayName ?? user.email?.split('@').first ?? 'User',
-      avatarUrl: user.photoURL,
-      createdAt: user.metadata.creationTime,
-    );
+      if (token == null || userId == null) {
+        return null;
+      }
+
+      // Simulate fetching user data
+      return UserModel(
+        id: userId,
+        email: 'user@cryptooracle.com',
+        name: 'Demo User',
+        createdAt: DateTime.now(),
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<void> logout() async {
-    await _firebaseAuth.signOut();
     await _secureStorage.clearAll();
   }
 
   Future<bool> isAuthenticated() async {
-    return _firebaseAuth.currentUser != null;
-  }
-
-  AppException _mapFirebaseAuthException(
-    FirebaseAuthException e, {
-    required String defaultMessage,
-  }) {
-    switch (e.code) {
-      case 'invalid-email':
-        return ValidationException(message: 'Invalid email address', code: e.code);
-      case 'user-disabled':
-        return AuthException(message: 'This account has been disabled', code: e.code);
-      case 'user-not-found':
-        return AuthException(message: 'No account found for this email', code: e.code);
-      case 'wrong-password':
-      case 'invalid-credential':
-        return AuthException(message: 'Incorrect email or password', code: e.code);
-      case 'email-already-in-use':
-        return ValidationException(message: 'An account already exists for this email', code: e.code);
-      case 'weak-password':
-        return ValidationException(message: 'Password is too weak (min 6 characters)', code: e.code);
-      case 'operation-not-allowed':
-        return AuthException(message: 'Email/password sign-in is not enabled', code: e.code);
-      case 'too-many-requests':
-        return AuthException(message: 'Too many attempts. Try again later.', code: e.code);
-      case 'network-request-failed':
-        return NetworkException(message: 'Network error. Check your connection.', code: e.code);
-      default:
-        return AuthException(
-          message: '$defaultMessage: ${e.message ?? e.code}',
-          code: e.code,
-        );
-    }
+    final token = await _secureStorage.getAuthToken();
+    return token != null;
   }
 }

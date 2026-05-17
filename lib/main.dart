@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -7,14 +6,9 @@ import 'package:crypto_oracle/core/router/app_router.dart';
 import 'package:crypto_oracle/core/storage/local_storage_service.dart';
 import 'package:crypto_oracle/features/watchlist/domain/watchlist_provider.dart';
 import 'package:crypto_oracle/features/settings/domain/settings_provider.dart';
-import 'package:crypto_oracle/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
   // Initialize Hive
   await Hive.initFlutter();
