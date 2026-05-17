@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "337091683718",
+    "project_id": "cryyptooracle",
+    "storage_bucket": "cryyptooracle.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:337091683718:android:6c9cee0f3b4a0067bbf807",
+        "android_client_info": {
+          "package_name": "com.example.crypto_oracle"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "337091683718-olh7a7dq9n93ht8adbaqm3fegpb41sr9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9WekEmRaWRBXRIMj7F0FvoNYjRVoNt2M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "337091683718-olh7a7dq9n93ht8adbaqm3fegpb41sr9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
