@@ -1,27 +1,45 @@
-import 'package:crypto_oracle/core/storage/local_storage_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WatchlistRepository {
-  final LocalStorageService _localStorage;
+  final FirebaseFirestore _firestore;
 
-  WatchlistRepository(this._localStorage);
+  WatchlistRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  Future<List<String>> getWatchlist() async {
-    return _localStorage.getWatchlist();
+  DocumentReference<Map<String, dynamic>> _userDoc(String uid) =>
+      _firestore.collection('users').doc(uid);
+
+  Future<List<String>> getWatchlist(String uid) async {
+    final snapshot = await _userDoc(uid).get();
+    final raw = snapshot.data()?['watchlist'];
+    if (raw is List) {
+      return raw.whereType<String>().toList();
+    }
+    return [];
   }
 
-  Future<void> addToWatchlist(String coinId) async {
-    await _localStorage.addToWatchlist(coinId);
+  Future<void> addToWatchlist(String uid, String coinId) async {
+    await _userDoc(uid).set(
+      {
+        'watchlist': FieldValue.arrayUnion([coinId]),
+      },
+      SetOptions(merge: true),
+    );
   }
 
-  Future<void> removeFromWatchlist(String coinId) async {
-    await _localStorage.removeFromWatchlist(coinId);
+  Future<void> removeFromWatchlist(String uid, String coinId) async {
+    await _userDoc(uid).set(
+      {
+        'watchlist': FieldValue.arrayRemove([coinId]),
+      },
+      SetOptions(merge: true),
+    );
   }
 
-  bool isInWatchlist(String coinId) {
-    return _localStorage.isInWatchlist(coinId);
-  }
-
-  Future<void> clearWatchlist() async {
-    await _localStorage.saveWatchlist([]);
+  Future<void> clearWatchlist(String uid) async {
+    await _userDoc(uid).set(
+      {'watchlist': <String>[]},
+      SetOptions(merge: true),
+    );
   }
 }

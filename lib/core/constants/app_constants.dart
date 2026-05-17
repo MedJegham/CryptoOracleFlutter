@@ -21,14 +21,12 @@ class AppConstants {
   // Storage Keys
   static const String authTokenKey = 'auth_token';
   static const String userIdKey = 'user_id';
-  static const String watchlistKey = 'watchlist';
   static const String themeKey = 'theme_mode';
   static const String lastSyncKey = 'last_sync';
   static const String priceHistoryKey = 'price_history';
-  
+
   // Hive Boxes
   static const String marketDataBox = 'market_data';
-  static const String watchlistBox = 'watchlist_box';
   static const String userPrefsBox = 'user_prefs';
   
   // Top trading pairs on Binance (expanded list)

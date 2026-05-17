@@ -8,33 +8,6 @@ class LocalStorageService {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  // Watchlist
-  Future<void> saveWatchlist(List<String> coinIds) async {
-    await _prefs.setStringList(AppConstants.watchlistKey, coinIds);
-  }
-
-  List<String> getWatchlist() {
-    return _prefs.getStringList(AppConstants.watchlistKey) ?? [];
-  }
-
-  Future<void> addToWatchlist(String coinId) async {
-    final watchlist = getWatchlist();
-    if (!watchlist.contains(coinId)) {
-      watchlist.add(coinId);
-      await saveWatchlist(watchlist);
-    }
-  }
-
-  Future<void> removeFromWatchlist(String coinId) async {
-    final watchlist = getWatchlist();
-    watchlist.remove(coinId);
-    await saveWatchlist(watchlist);
-  }
-
-  bool isInWatchlist(String coinId) {
-    return getWatchlist().contains(coinId);
-  }
-
   // Theme
   Future<void> saveThemeMode(String mode) async {
     await _prefs.setString(AppConstants.themeKey, mode);
